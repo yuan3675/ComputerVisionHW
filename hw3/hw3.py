@@ -1,4 +1,5 @@
 from PIL import Image
+import matplotlib.pyplot as plt
 
 image = Image.open('lena.bmp')
 width, height = image.size
@@ -20,9 +21,14 @@ for i in range(len(histogram)):
 		S[i] = S[i] + (histogram[j] / totalPixels)
 	S[i] = (int) (S[i] * 255)
 
+histogramEqualization = [0] * 256
 # put S value into image
 for i in range(0, width):
 	for j in range(0, height):
 		imageCopy.putpixel((i, j), S[pixels[i, j]])
+		histogramEqualization[S[pixels[i, j]]] += 1
 
 imageCopy.save('HistogramEqualization.bmp')
+
+plt.bar(range(256), height = histogramEqualization)
+plt.savefig('histogram.jpg')
