@@ -78,10 +78,14 @@ image = Image.open('lena.bmp')
 binaryImage = binarize(image)
 smallImage = downSampling(binaryImage)
 output = countYokoiNumber(smallImage)
-output.save('Yokoi.tif')
 pixels = output.load()
 width, height = output.size
+f = open("YokoiNumber.txt", "w")
 for j in range(height):
 	for i in range(width):
-		print(pixels[i, j], end = ' ')
-	print()
+		if pixels[i, j] != 0:
+			f.write(str(pixels[i, j]))
+		else:
+			f.write(' ')
+	f.write('\n')
+f.close()
