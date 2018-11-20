@@ -25,19 +25,6 @@ def downSampling(image):
 			output.putpixel((i, j), pixels[(i-1)*8, (j-1)*8])
 	return output
 
-def markInterior(image):
-	width, height = image.size
-	output = Image.new('1', (width, height), 0)
-	pixels = image.load()
-
-	# 0 equals border, 1 equals interior
-	for j in range(1, height-1):
-		for i in range(1, width-1):
-			if pixels[i, j] == 1:
-				if pixels[i+1, j] == 1 and pixels[i-1, j] == 1 and pixels[i, j+1] == 1 and pixels[i, j-1] == 1:
-					output.putpixel((i, j), 1)
-	return output
-
 def pairRelationship(image):
 	width, height = image.size
 	pixels = image.load()
@@ -47,20 +34,15 @@ def pairRelationship(image):
 	for j in range(1, height-1):
 		for i in range(1, width-1):
 			# if pixel(i, j) is border
-			if pixels[i, j] == 0: 
+			if pixels[i, j] == 1: 
 				if pixels[i+1, j] == 1 or pixels[i-1, j] == 1 or pixels[i, j+1] == 1 or pixels[i, j-1] == 1:
 					output.putpixel((i, j), 1)
 	return output
 
-def shrink(image, mark):
+def yokoi(image):
 	width, height = image.size
-	output = Image.new('1', (width, height), 0)
+	output = Image.new('I', (width, height), 0)
 	pixels = image.load()
-	marks = mark.load()
-
-	for j in range(height):
-		for i in range(width):
-			output.putpixel((i, j), pixels[i, j])
 	
 	for j in range(1, height-1):
 		for i in range(1, width-1):
@@ -87,10 +69,32 @@ def shrink(image, mark):
 					rCounter += 1
 				elif pixels[i, j] == pixels[i, j+1]:
 					qCounter += 1
+			
+			if rCounter == 4:
+				output.putpixel((i, j), 5)
+			elif qCounter != 0:
+				output.putpixel((i, j), qCounter)
 
-				if qCounter == 1 and marks[i, j] == 1:
+	return output
+
+def shrink(image, border, pair):
+	width, pixel = image.size
+	pixels = image.load()
+	pixels_b = border.load()
+	pixels_p = pair.load()
+	output = Image.new('1', (width, height), 0)
+
+	for j in range(height):
+		for i in range(width):
+			output.putpixel((i, j), pixels[i, j])
+	counter = 0
+	for j in range(1, height-1):
+		for i in range(1, width-1):
+			if pixels[i, j] == 1:
+				if pixels_b[i, j] == 1 and pixels_p[i, j] == 1:
 					output.putpixel((i, j), 0)
-					
+					counter += 1
+	print(counter)
 	return output
 
 # Main Function
@@ -100,12 +104,15 @@ nowImage = downSampling(binaryImage)
 width, height = nowImage.size
 preImage = Image.new('1', (width, height), 0)
 
+counter = 0
 while preImage != nowImage:
+	counter += 1
 	preImage = nowImage
-	border = markInterior(nowImage)
+	border = yokoi(nowImage)
 	pair = pairRelationship(border)
-	nowImage = shrink(nowImage, pair)
+	nowImage = shrink(nowImage, border, pair)
 
+print(counter)
 pixels = nowImage.load()
 output = Image.new('1', (64, 64), 0)
 for j in range(64):
